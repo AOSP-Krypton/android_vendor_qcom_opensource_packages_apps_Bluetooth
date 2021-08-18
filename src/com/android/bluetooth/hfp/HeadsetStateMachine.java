@@ -171,12 +171,12 @@ public class HeadsetStateMachine extends StateMachine {
         @Override
         public void onAvailable(Network network) {
             mIsAvailable = true;
-            Log.d(TAG, "The current Network: "+network+" is avialable: "+mIsAvailable);
+            log( "The current Network: "+network+" is avialable: "+mIsAvailable);
         }
         @Override
         public void onLost(Network network) {
            mIsAvailable = false;
-           Log.d(TAG, "The current Network:"+network+" is lost, mIsAvailable: "
+           log( "The current Network:"+network+" is lost, mIsAvailable: "
                  +mIsAvailable);
         }
     };
@@ -297,7 +297,7 @@ public class HeadsetStateMachine extends StateMachine {
 
 
         mConnectivityManager.registerDefaultNetworkCallback(mDefaultNetworkCallback);
-        Log.i(TAG," Exiting HeadsetStateMachine constructor for device :" + device);
+        log(" Exiting HeadsetStateMachine constructor for device :" + device);
     }
 
     static HeadsetStateMachine make(BluetoothDevice device, Looper looper,
@@ -306,14 +306,14 @@ public class HeadsetStateMachine extends StateMachine {
         HeadsetStateMachine stateMachine =
                 new HeadsetStateMachine(device, looper, headsetService, adapterService,
                         nativeInterface, systemInterface);
-        Log.i(TAG," Starting StateMachine  device: " + device);
+        sLog(" Starting StateMachine  device: " + device);
         stateMachine.start();
-        Log.i(TAG, "Created state machine " + stateMachine + " for " + device);
+        sLog( "Created state machine " + stateMachine + " for " + device);
         return stateMachine;
     }
 
     static void destroy(HeadsetStateMachine stateMachine) {
-        Log.i(TAG, "destroy");
+        sLog( "destroy");
         if (stateMachine == null) {
             Log.w(TAG, "destroy(), stateMachine is null");
             return;
@@ -323,7 +323,7 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     public void cleanup() {
-        Log.i(TAG," destroy, current state " + getCurrentHeadsetStateMachineState());
+        log(" destroy, current state " + getCurrentHeadsetStateMachineState());
         if (getCurrentHeadsetStateMachineState() == mAudioOn) {
             mAudioOn.broadcastAudioState(mDevice, BluetoothHeadset.STATE_AUDIO_CONNECTED,
                                 BluetoothHeadset.STATE_AUDIO_DISCONNECTED);
@@ -377,7 +377,7 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     public boolean getIfDeviceBlacklistedForSCOAfterSLC() {
-        Log.d(TAG, "getIfDeviceBlacklistedForSCOAfterSLC, returning " +
+        log( "getIfDeviceBlacklistedForSCOAfterSLC, returning " +
                              mIsBlacklistedForSCOAfterSLC);
         return  mIsBlacklistedForSCOAfterSLC;
     }
@@ -396,7 +396,7 @@ public class HeadsetStateMachine extends StateMachine {
 
             synchronized(mLock) {
                 mCurrentState = this;
-                Log.e(TAG, "Setting mCurrentState as " + mCurrentState);
+                log( "Setting mCurrentState as " + mCurrentState);
             }
         }
 
@@ -568,7 +568,7 @@ public class HeadsetStateMachine extends StateMachine {
 
     public HeadsetStateBase getCurrentHeadsetStateMachineState() {
         synchronized(mLock) {
-            Log.e(TAG, "returning mCurrentState as " + mCurrentState);
+            log( "returning mCurrentState as " + mCurrentState);
             return mCurrentState;
         }
     }
@@ -885,12 +885,12 @@ public class HeadsetStateMachine extends StateMachine {
                     processWBSEvent(HeadsetHalConstants.BTHF_WBS_NO);
                     stateLogD(" retryConnectCount = " + retryConnectCount);
                     if(retryConnectCount == 1 && !hasDeferredMessages(DISCONNECT)) {
-                        Log.d(TAG,"No deferred Disconnect, retry once more ");
+                        log("No deferred Disconnect, retry once more ");
                         sendMessageDelayed(CONNECT, mDevice, RETRY_CONNECT_TIME_SEC);
                     } else if (retryConnectCount >= MAX_RETRY_CONNECT_COUNT ||
                             hasDeferredMessages(DISCONNECT)) {
                         // we already tried twice.
-                        Log.d(TAG,"Already tried twice or has deferred Disconnect");
+                        log("Already tried twice or has deferred Disconnect");
                         retryConnectCount = 0;
                     }
                     transitionTo(mDisconnected);
@@ -1047,7 +1047,7 @@ public class HeadsetStateMachine extends StateMachine {
 
                     if (mHeadsetService.getHfpA2DPSyncInterface().suspendA2DP(
                           HeadsetA2dpSync.A2DP_SUSPENDED_BY_VR, mDevice) == true) {
-                       Log.d(TAG, "mesg VOICE_RECOGNITION_START: A2DP is playing,"+
+                       log( "mesg VOICE_RECOGNITION_START: A2DP is playing,"+
                              " return and establish SCO after A2DP supended");
                         break;
                     }
@@ -1164,14 +1164,14 @@ public class HeadsetStateMachine extends StateMachine {
                             message.arg1 == VR_SUCCESS ? HeadsetHalConstants.AT_RESPONSE_OK
                                     : HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
                     if (message.arg1 != VR_SUCCESS) {
-                       Log.d(TAG, "VOICE_RECOGNITION_RESULT: not creating SCO since VR app"+
+                       log( "VOICE_RECOGNITION_RESULT: not creating SCO since VR app"+
                                   " failed to start VR");
                        break;
                     }
 
                     if (mHeadsetService.getHfpA2DPSyncInterface().suspendA2DP(
                           HeadsetA2dpSync.A2DP_SUSPENDED_BY_VR, mDevice) == true) {
-                       Log.d(TAG, "mesg VOICE_RECOGNITION_START: A2DP is playing,"+
+                       log( "mesg VOICE_RECOGNITION_START: A2DP is playing,"+
                              " return and establish SCO after A2DP supended");
                         break;
                     }
@@ -1890,7 +1890,7 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void processAudioServerUp() {
-        Log.i(TAG, "onAudioSeverUp: restore audio parameters");
+        log( "onAudioSeverUp: restore audio parameters");
         mSystemInterface.getAudioManager().setBluetoothScoOn(false);
         mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
         setAudioParameters();
@@ -1924,7 +1924,7 @@ public class HeadsetStateMachine extends StateMachine {
                 HEADSET_SWB + "=" + mAudioParams.getOrDefault(HEADSET_SWB,
                         HEADSET_SWB_DISABLE)
         });
-        Log.i(TAG, "setAudioParameters for " + mDevice + ": " + keyValuePairs);
+        log( "setAudioParameters for " + mDevice + ": " + keyValuePairs);
         mSystemInterface.getAudioManager().setParameters(keyValuePairs);
     }
 
@@ -2201,7 +2201,7 @@ public class HeadsetStateMachine extends StateMachine {
                 mNativeInterface.phoneStateChange(mDevice, updateCallState);
                 mIsCallIndDelay = true;
             }
-            
+
             /* The device is blacklisted for sending incoming call setup
              * indicator after SCO disconnection and sending active call end
              * indicator. While the incoming call setup indicator is in queue,
@@ -2280,14 +2280,14 @@ public class HeadsetStateMachine extends StateMachine {
 
     private void processA2dpState(HeadsetCallState callState) {
         int a2dpState = mHeadsetService.getHfpA2DPSyncInterface().isA2dpPlaying();
-        Log.d(TAG, "processA2dpState: isA2dpPlaying() " + a2dpState);
+        log( "processA2dpState: isA2dpPlaying() " + a2dpState);
 
         if ((mSystemInterface.isInCall() || mSystemInterface.isRinging()) &&
               getConnectionState() == BluetoothHeadset.STATE_CONNECTED) {
             // if A2DP is playing, add CS call states and return
             if (mHeadsetService.getHfpA2DPSyncInterface().suspendA2DP(
                  HeadsetA2dpSync.A2DP_SUSPENDED_BY_CS_CALL, mDevice) == true) {
-                 Log.d(TAG, "processA2dpState: A2DP is playing, suspending it,"+
+                 log( "processA2dpState: A2DP is playing, suspending it,"+
                              "cache the call state for future");
                  mPendingCallStates.add(callState);
                  return;
@@ -2300,7 +2300,7 @@ public class HeadsetStateMachine extends StateMachine {
             //When MO call creation and disconnection done back to back, Make sure to send
             //the call indicators in a sequential way to remote
             if (mPendingCallStates.size() != 0) {
-                Log.d(TAG, "Cache the call state, PendingCallStates list is not empty");
+                log( "Cache the call state, PendingCallStates list is not empty");
                 mPendingCallStates.add(callState);
                 return;
             }
@@ -2315,7 +2315,7 @@ public class HeadsetStateMachine extends StateMachine {
 
     private void updateCallType() {
         boolean isCsCall = mSystemInterface.isCsCallInProgress();
-        Log.d(TAG, "updateCallType " + isCsCall);
+        log( "updateCallType " + isCsCall);
         final HeadsetPhoneState mPhoneState = mSystemInterface.getHeadsetPhoneState();
         mPhoneState.setIsCsCall(isCsCall);
         if (getAudioState() == BluetoothHeadset.STATE_AUDIO_CONNECTED) {
@@ -2331,30 +2331,30 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void processIntentA2dpPlayStateChanged(int a2dpState) {
-        Log.d(TAG, "Enter processIntentA2dpPlayStateChanged(): a2dp state "+
+        log( "Enter processIntentA2dpPlayStateChanged(): a2dp state "+
                   a2dpState);
         if (mHeadsetService.isVRStarted()) {
-            Log.d(TAG, "VR is in started state");
+            log( "VR is in started state");
             if (mDevice.equals(mHeadsetService.getActiveDevice())) {
-               Log.d(TAG, "creating SCO for " + mDevice);
+               log( "creating SCO for " + mDevice);
                mNativeInterface.connectAudio(mDevice);
             }
         } else if (mSystemInterface.isInCall() || mHeadsetService.isVirtualCallStarted()){
             //send incoming phone status to remote device
-            Log.d(TAG, "A2dp is suspended, updating phone states");
+            log( "A2dp is suspended, updating phone states");
             Iterator<HeadsetCallState> it = mPendingCallStates.iterator();
             if (it != null) {
                while (it.hasNext()) {
                   HeadsetCallState callState = it.next();
-                  Log.d(TAG, "mIsCallIndDelay: " + mIsCallIndDelay);
+                  log( "mIsCallIndDelay: " + mIsCallIndDelay);
                   mNativeInterface.phoneStateChange(mDevice, callState);
                   it.remove();
                }
             } else {
-               Log.d(TAG, "There are no pending call state changes");
+               log( "There are no pending call state changes");
             }
         } else {
-            Log.d(TAG, "A2DP suspended when there is no CS/VOIP calls or VR, resuming A2DP");
+            log( "A2DP suspended when there is no CS/VOIP calls or VR, resuming A2DP");
             //When A2DP is suspended and the call is terminated,
             //clean up the PendingCallStates list
             Iterator<HeadsetCallState> it = mPendingCallStates.iterator();
@@ -2367,7 +2367,7 @@ public class HeadsetStateMachine extends StateMachine {
             }
             mHeadsetService.getHfpA2DPSyncInterface().releaseA2DP(mDevice);
         }
-        Log.d(TAG, "Exit processIntentA2dpPlayStateChanged()");
+        log( "Exit processIntentA2dpPlayStateChanged()");
     }
 
     private void processNoiseReductionEvent(boolean enable) {
@@ -2610,7 +2610,7 @@ public class HeadsetStateMachine extends StateMachine {
         String command = atString.substring(0, indexOfEqual);
         Integer companyId = VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.get(command);
         if (companyId == null) {
-            Log.i(TAG, "processVendorSpecificAt: unsupported command: " + atString);
+            log( "processVendorSpecificAt: unsupported command: " + atString);
             mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
             return;
         }
@@ -2861,7 +2861,7 @@ public class HeadsetStateMachine extends StateMachine {
         } else {
             log("processCpbr - RESULT_NONE");
         }
-        Log.d(TAG, "Exit processCpbr()");
+        log( "Exit processCpbr()");
     }
 
     private void processSendClccResponse(HeadsetClccResponse clcc) {
@@ -2911,7 +2911,7 @@ public class HeadsetStateMachine extends StateMachine {
             HeadsetAgIndicatorEnableState agIndicatorEnableState) {
         if (!mDeviceSilenced
                 && Objects.equals(mAgIndicatorEnableState, agIndicatorEnableState)) {
-            Log.i(TAG, "updateAgIndicatorEnableState, no change in indicator state "
+            log( "updateAgIndicatorEnableState, no change in indicator state "
                     + mAgIndicatorEnableState);
             return;
         }
@@ -2951,32 +2951,32 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void sendVoipConnectivityNetworktype(boolean isVoipStarted) {
-        Log.d(TAG, "Enter sendVoipConnectivityNetworktype()");
+        log( "Enter sendVoipConnectivityNetworktype()");
         Network network = mConnectivityManager.getActiveNetwork();
         if (network == null) {
-            Log.d(TAG, "No default network is currently active");
+            log( "No default network is currently active");
             return;
         }
         NetworkCapabilities networkCapabilities =
                                    mConnectivityManager.getNetworkCapabilities(network);
         if (mIsAvailable == false) {
-            Log.d(TAG, "No connected/available connectivity network, don't update soc");
+            log( "No connected/available connectivity network, don't update soc");
             return;
         }
         if (networkCapabilities == null) {
-            Log.d(TAG, "The capabilities of active network is NULL");
+            log( "The capabilities of active network is NULL");
             return;
         }
         if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-            Log.d(TAG, "Voip/VoLTE started/stopped on n/w TRANSPORT_CELLULAR, don't update to soc");
+            log( "Voip/VoLTE started/stopped on n/w TRANSPORT_CELLULAR, don't update to soc");
         } else if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-            Log.d(TAG, "Voip/VoLTE started/stopped on n/w TRANSPORT_WIFI, "+
+            log( "Voip/VoLTE started/stopped on n/w TRANSPORT_WIFI, "+
                        "update n/w type & start/stop to soc");
             mAdapterService.voipNetworkWifiInfo(isVoipStarted, true);
         } else {
-            Log.d(TAG, "Voip/VoLTE started/stopped on some other n/w, don't update to soc");
+            log( "Voip/VoLTE started/stopped on some other n/w, don't update to soc");
         }
-        Log.d(TAG, "Exit sendVoipConnectivityNetworktype()");
+        log( "Exit sendVoipConnectivityNetworktype()");
     }
 
     @Override
@@ -3077,6 +3077,12 @@ public class HeadsetStateMachine extends StateMachine {
                 return "AUDIO_SERVER_UP";
             default:
                 return "UNKNOWN(" + what + ")";
+        }
+    }
+
+    private static void sLog(String msg) {
+        if (DBG) {
+            Log.d(TAG, msg);
         }
     }
 }
